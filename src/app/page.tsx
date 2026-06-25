@@ -267,7 +267,7 @@ export default function Home() {
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded border transition-colors ${
               hasCurrentKey
                 ? 'border-violet-800 bg-violet-950/30 text-violet-400 hover:bg-violet-900/40'
-                : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                : 'border-zinc-600 bg-zinc-900 text-zinc-300 hover:border-violet-700 hover:text-violet-400'
             }`} title="Configure API keys">
             <span>&#x1F511;</span>
             <span className="text-[10px]">{hasCurrentKey ? 'key set' : 'add key'}</span>
@@ -303,7 +303,7 @@ export default function Home() {
                 </div>
                 {!hasCurrentKey && (
                   <button onClick={() => setKeyModalOpen(true)}
-                    className="w-full text-[10px] text-zinc-500 hover:text-violet-400 border border-zinc-800 hover:border-violet-800 rounded py-1.5 transition-colors">
+                    className="w-full text-[10px] text-zinc-400 hover:text-violet-400 border border-zinc-600 hover:border-violet-700 rounded py-1.5 transition-colors">
                     Set API key →
                   </button>
                 )}
@@ -364,16 +364,39 @@ export default function Home() {
             </button>
             {webmcpOpen && webmcpStatus && (
               <div className="px-4 pb-4 space-y-1.5">
+
+                {/* Plain-English status — for non-technical users */}
+                <div className={`rounded px-2.5 py-2 mb-1 text-[10px] leading-snug ${
+                  webmcpStatus.supported
+                    ? 'bg-green-950/40 border border-green-900 text-green-400'
+                    : 'bg-zinc-900 border border-zinc-700 text-zinc-400'
+                }`}>
+                  {webmcpStatus.supported
+                    ? 'AI agents in your browser can call this site\'s tools directly.'
+                    : 'Tools are ready and waiting. Browser AI calling activates on desktop Chrome 149+.'
+                  }
+                </div>
+
+                {/* Technical rows — for nerds */}
                 {[
                   {
-                    label: 'WebMCP supported',
+                    label: 'Chrome WebMCP detected',
                     value: webmcpStatus.supported ? 'yes' : 'no',
                     dot:   webmcpStatus.supported ? 'bg-green-500' : 'bg-red-500',
                     color: webmcpStatus.supported ? 'text-green-500' : 'text-red-500',
                   },
                   {
-                    label: 'Tool registered',
-                    value: webmcpStatus.registered,
+                    label: 'Tool manifest',
+                    value: '✓ /api/mcp',
+                    dot:   'bg-green-500',
+                    color: 'text-green-500',
+                  },
+                  {
+                    label: 'Registration',
+                    value: webmcpStatus.registered === 'registered' ? 'registered'
+                         : webmcpStatus.registered === 'pending'    ? 'pending'
+                         : webmcpStatus.registered === 'failed'     ? 'failed'
+                         :                                            'pending browser support',
                     dot:   webmcpStatus.registered === 'registered' ? 'bg-green-500'
                          : webmcpStatus.registered === 'pending'    ? 'bg-yellow-500'
                          : webmcpStatus.registered === 'failed'     ? 'bg-red-500'
@@ -381,7 +404,7 @@ export default function Home() {
                     color: webmcpStatus.registered === 'registered' ? 'text-green-500'
                          : webmcpStatus.registered === 'pending'    ? 'text-yellow-500'
                          : webmcpStatus.registered === 'failed'     ? 'text-red-500'
-                         :                                            'text-zinc-600',
+                         :                                            'text-zinc-500',
                   },
                   {
                     label: 'Tool name',
