@@ -20,10 +20,10 @@ function computeMetrics(claims: Claim[], frictions: Friction[]): CycleMetrics {
     claims.length > 0 ? frictions.length / claims.length : 0;
   const agreementRate =
     totalRelations > 0 ? supportingRelations / totalRelations : 0;
-  const blockingCount = frictions.filter(f => f.frictionType === 'blocking').length;
+  const contradictionCount = frictions.filter(f => f.frictionType === 'contradiction').length;
   const attractorStability = Math.max(
     0,
-    1 - blockingCount * 0.25 - contradictionDensity * 0.25,
+    1 - contradictionCount * 0.25 - contradictionDensity * 0.25,
   );
 
   return {
