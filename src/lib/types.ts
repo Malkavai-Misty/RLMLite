@@ -1,5 +1,15 @@
 export type AgentRole = 'proposer' | 'challenger' | 'explorer';
 
+export type ProviderId =
+  | 'anthropic'
+  | 'openai'
+  | 'google'
+  | 'openrouter'
+  | 'deepseek'
+  | 'groq'
+  | 'mistral'
+  | 'ollama';
+
 export type ClaimRelation = {
   type: 'supports' | 'contradicts' | 'depends_on' | 'extends';
   targetId: string;
@@ -54,15 +64,15 @@ export type DebateCycle = {
 };
 
 export type ProviderConfig = {
-  provider: 'anthropic' | 'openai' | 'openai-compatible';
+  provider: ProviderId;
   apiKey: string;
   model: string;
   baseURL?: string;
 };
 
 export type DebateConfig = {
-  proposerProvider: ProviderConfig;
+  proposerProvider:   ProviderConfig;
   challengerProvider: ProviderConfig;
-  explorerProvider: ProviderConfig;
-  graphProvider: ProviderConfig;
+  explorerProvider:   ProviderConfig;
+  graphProvider:      ProviderConfig;
 };

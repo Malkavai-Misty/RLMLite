@@ -1,7 +1,29 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import type { DebateCycle, DebateConfig, FrictionType, AgentRole } from '@/lib/types';
+import type { DebateCycle, DebateConfig, FrictionType, AgentRole, ProviderId, ProviderConfig } from '@/lib/types';
+
+// ── Provider registry ───────────────────────────────────────────────────────────
+
+type ProviderMeta = {
+  id: ProviderId;
+  label: string;
+  dot: string;
+  placeholder: string | null;
+  defaultModel: string;
+  noKey: boolean;
+};
+
+const PROVIDER_LIST: ProviderMeta[] = [
+  { id: 'anthropic',  label: 'Anthropic',  dot: 'bg-orange-500', placeholder: 'sk-ant-...',   defaultModel: 'claude-sonnet-4-6',          noKey: false },
+  { id: 'openai',     label: 'OpenAI',     dot: 'bg-green-500',  placeholder: 'sk-...',        defaultModel: 'gpt-4o',                     noKey: false },
+  { id: 'google',     label: 'Google',     dot: 'bg-blue-500',   placeholder: 'AIza...',       defaultModel: 'gemini-2.0-flash',           noKey: false },
+  { id: 'openrouter', label: 'OpenRouter', dot: 'bg-purple-500', placeholder: 'sk-or-v1-...', defaultModel: 'anthropic/claude-sonnet-4-5', noKey: false },
+  { id: 'deepseek',   label: 'DeepSeek',   dot: 'bg-sky-500',    placeholder: 'sk-...',        defaultModel: 'deepseek-chat',              noKey: false },
+  { id: 'groq',       label: 'Groq',       dot: 'bg-red-500',    placeholder: 'gsk_...',       defaultModel: 'llama-3.3-70b-versatile',    noKey: false },
+  { id: 'mistral',    label: 'Mistral',    dot: 'bg-amber-500',  placeholder: 'sk-...',        defaultModel: 'mistral-large-latest',       noKey: false },
+  { id: 'ollama',     label: 'Ollama',     dot: 'bg-zinc-400',   placeholder: null,            defaultModel: 'llama3.2',                   noKey: true  },
+];
 
 // ── Styling maps ──────────────────────────────────────────────────────────────
 
@@ -28,10 +50,9 @@ const AGENT_TEXT: Record<AgentRole, string> = {
 
 export default function Home() {
   const [prompt, setPrompt]             = useState('');
-  const [anthropicKey, setAnthropicKey] = useState('');
-  const [openaiKey, setOpenaiKey]       = useState('');
+  const [apiKeys, setApiKeys]           = useState<Record<string, string>>({});
   const [model, setModel]               = useState('claude-sonnet-4-6');
-  const [provider, setProvider]         = useState<'anthropic' | 'openai'>('anthropic');
+  const [provider, setProvider]         = useState<ProviderId>('anthropic');
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState<string | null>(null);
   const [cycle, setCycle]               = useState<DebateCycle | null>(null);
@@ -40,40 +61,44 @@ export default function Home() {
   const [keyModalOpen, setKeyModalOpen] = useState(false);
 
   useEffect(() => {
-    const ak = localStorage.getItem('rlm_api_key_anthropic');
-    const ok = localStorage.getItem('rlm_api_key_openai');
-    const sp = localStorage.getItem('rlm_provider') as 'anthropic' | 'openai' | null;
+    const keys: Record<string, string> = {};
+    PROVIDER_LIST.forEach(p => {
+      const saved = localStorage.getItem(`rlm_api_key_${p.id}`);
+      if (saved) keys[p.id] = saved;
+    });
+    setApiKeys(keys);
+
+    const sp = localStorage.getItem('rlm_provider') as ProviderId | null;
     const sm = localStorage.getItem('rlm_model');
-    if (ak) setAnthropicKey(ak);
-    if (ok) setOpenaiKey(ok);
-    if (sp) setProvider(sp);
+    if (sp && PROVIDER_LIST.some(p => p.id === sp)) setProvider(sp);
     if (sm) setModel(sm);
   }, []);
 
   useEffect(() => { localStorage.setItem('rlm_provider', provider); }, [provider]);
-  useEffect(() => { localStorage.setItem('rlm_model', model); }, [model]);
+  useEffect(() => { localStorage.setItem('rlm_model',    model);    }, [model]);
 
-  const handleAnthropicKeyChange = useCallback((val: string) => {
-    setAnthropicKey(val);
-    if (val) localStorage.setItem('rlm_api_key_anthropic', val);
-    else     localStorage.removeItem('rlm_api_key_anthropic');
+  const handleKeyChange = useCallback((providerId: string, val: string) => {
+    setApiKeys(prev => ({ ...prev, [providerId]: val }));
+    if (val) localStorage.setItem(`rlm_api_key_${providerId}`, val);
+    else     localStorage.removeItem(`rlm_api_key_${providerId}`);
   }, []);
 
-  const handleOpenaiKeyChange = useCallback((val: string) => {
-    setOpenaiKey(val);
-    if (val) localStorage.setItem('rlm_api_key_openai', val);
-    else     localStorage.removeItem('rlm_api_key_openai');
+  const handleProviderChange = useCallback((newProvider: ProviderId) => {
+    const meta = PROVIDER_LIST.find(p => p.id === newProvider);
+    setProvider(newProvider);
+    if (meta) setModel(meta.defaultModel);
   }, []);
 
-  const hasCurrentKey = provider === 'anthropic' ? !!anthropicKey : !!openaiKey;
+  const activeMeta   = PROVIDER_LIST.find(p => p.id === provider);
+  const hasCurrentKey = activeMeta?.noKey || !!apiKeys[provider];
 
   const run = useCallback(async () => {
     if (!prompt.trim()) return;
     setLoading(true);
     setError(null);
 
-    const apiKey = provider === 'anthropic' ? anthropicKey : openaiKey;
-    const providerConfig = { provider, apiKey, model };
+    const apiKey = activeMeta?.noKey ? '' : (apiKeys[provider] || '');
+    const providerConfig: ProviderConfig = { provider, apiKey, model };
     const config: DebateConfig = {
       proposerProvider:   providerConfig,
       challengerProvider: providerConfig,
@@ -96,7 +121,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [prompt, anthropicKey, openaiKey, model, provider]);
+  }, [prompt, apiKeys, model, provider, activeMeta]);
 
   const exportCycle = useCallback(() => {
     if (!cycle) return;
@@ -118,8 +143,8 @@ export default function Home() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
           onClick={e => { if (e.target === e.currentTarget) setKeyModalOpen(false); }}
         >
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md mx-4 p-6 space-y-5">
-            <div className="flex items-center justify-between">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md mx-4 p-6 space-y-1 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3">
               <h2 className="text-sm font-bold text-zinc-100 tracking-tight">API Keys</h2>
               <button
                 onClick={() => setKeyModalOpen(false)}
@@ -129,45 +154,38 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Anthropic */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />
-                <span className="text-xs font-semibold text-zinc-300">Anthropic (Claude)</span>
-                {anthropicKey && (
-                  <span className="ml-auto text-[10px] text-green-500">&#x2713; configured</span>
-                )}
-              </div>
-              <input
-                type="password"
-                value={anthropicKey}
-                onChange={e => handleAnthropicKeyChange(e.target.value)}
-                placeholder="sk-ant-..."
-                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-600"
-              />
-            </div>
-
-            {/* OpenAI */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-                <span className="text-xs font-semibold text-zinc-300">OpenAI</span>
-                {openaiKey && (
-                  <span className="ml-auto text-[10px] text-green-500">&#x2713; configured</span>
-                )}
-              </div>
-              <input
-                type="password"
-                value={openaiKey}
-                onChange={e => handleOpenaiKeyChange(e.target.value)}
-                placeholder="sk-..."
-                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-600"
-              />
-            </div>
-
-            <p className="text-[10px] text-zinc-600 leading-relaxed border-t border-zinc-800 pt-4">
+            <p className="text-[10px] text-zinc-500 leading-relaxed pb-3 border-b border-zinc-800">
               Keys are stored in your browser only. They are sent to this app&apos;s API endpoint solely
               to forward your requests to providers — never logged or retained server-side.
+            </p>
+
+            <div className="space-y-3 pt-2">
+              {PROVIDER_LIST.map(p => (
+                <div key={p.id} className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${p.dot}`} />
+                    <span className="text-xs font-semibold text-zinc-300">{p.label}</span>
+                    {!p.noKey && apiKeys[p.id] && (
+                      <span className="ml-auto text-[10px] text-green-500">&#x2713; configured</span>
+                    )}
+                  </div>
+                  {p.noKey ? (
+                    <p className="text-[10px] text-zinc-600 pl-4">Local — no key needed</p>
+                  ) : (
+                    <input
+                      type="password"
+                      value={apiKeys[p.id] || ''}
+                      onChange={e => handleKeyChange(p.id, e.target.value)}
+                      placeholder={p.placeholder ?? ''}
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-600"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[10px] text-zinc-700 pt-3 border-t border-zinc-800 mt-3">
+              Your own keys use your credits directly. Keys entered here override any host-configured keys.
             </p>
           </div>
         </div>
@@ -227,11 +245,12 @@ export default function Home() {
                   <label className="text-[10px] text-zinc-500 uppercase tracking-widest block mb-1">Provider</label>
                   <select
                     value={provider}
-                    onChange={e => setProvider(e.target.value as 'anthropic' | 'openai')}
+                    onChange={e => handleProviderChange(e.target.value as ProviderId)}
                     className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-violet-500"
                   >
-                    <option value="anthropic">Anthropic (Claude)</option>
-                    <option value="openai">OpenAI</option>
+                    {PROVIDER_LIST.map(p => (
+                      <option key={p.id} value={p.id}>{p.label}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -288,9 +307,9 @@ export default function Home() {
             <div className="space-y-1.5">
               {[
                 { type: 'contradiction', color: 'bg-red-500',    desc: 'logical impossibility' },
-                { type: 'tension',       color: 'bg-orange-500', desc: 'competing emphasis' },
+                { type: 'tension',       color: 'bg-orange-500', desc: 'competing emphasis'     },
                 { type: 'refinement',    color: 'bg-blue-500',   desc: 'qualifies or constrains' },
-                { type: 'convergence',   color: 'bg-green-500',  desc: 'agreement or support' },
+                { type: 'convergence',   color: 'bg-green-500',  desc: 'agreement or support'   },
               ].map(r => (
                 <div key={r.type} className="flex items-center gap-2">
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${r.color}`} />
