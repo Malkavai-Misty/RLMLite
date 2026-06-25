@@ -49,8 +49,8 @@ Input prompt
 ## Quick start
 
 ```bash
-git clone https://github.com/malkavai-misty/rlm-lite.git
-cd rlm-lite
+git clone https://github.com/malkavai-misty/rlmlite.git
+cd rlmlite
 npm install
 cp .env.example .env.local
 # Edit .env.local — add ANTHROPIC_API_KEY or OPENAI_API_KEY
@@ -122,7 +122,7 @@ Published papers:
 
 ## License
 
-MIT. Use it, fork it, extend it. If you build something interesting on top, open an issue.
+Apache 2.0. See [LICENSE](./LICENSE) for the full terms.
 
 ---
 
