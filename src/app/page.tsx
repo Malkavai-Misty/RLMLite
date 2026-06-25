@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { DebateCycle, DebateConfig, FrictionType, AgentRole } from '@/lib/types';
 
 // ── Styling maps ──────────────────────────────────────────────────────────────
@@ -28,15 +28,47 @@ const AGENT_TEXT: Record<AgentRole, string> = {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const [prompt, setPrompt]       = useState('');
-  const [apiKey, setApiKey]       = useState('');
-  const [model, setModel]         = useState('claude-sonnet-4-6');
-  const [provider, setProvider]   = useState<'anthropic' | 'openai'>('anthropic');
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState<string | null>(null);
-  const [cycle, setCycle]         = useState<DebateCycle | null>(null);
-  const [history, setHistory]     = useState<DebateCycle[]>([]);
+  const [prompt, setPrompt]         = useState('');
+  const [apiKey, setApiKey]         = useState('');
+  const [model, setModel]           = useState('claude-sonnet-4-6');
+  const [provider, setProvider]     = useState<'anthropic' | 'openai'>('anthropic');
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
+  const [cycle, setCycle]           = useState<DebateCycle | null>(null);
+  const [history, setHistory]       = useState<DebateCycle[]>([]);
   const [configOpen, setConfigOpen] = useState(true);
+  const [keySaved, setKeySaved]     = useState(false);
+
+  // Load persisted config from localStorage on mount
+  useEffect(() => {
+    const savedKey      = localStorage.getItem('rlm_api_key');
+    const savedProvider = localStorage.getItem('rlm_provider') as 'anthropic' | 'openai' | null;
+    const savedModel    = localStorage.getItem('rlm_model');
+    if (savedKey)      { setApiKey(savedKey); setKeySaved(true); }
+    if (savedProvider) setProvider(savedProvider);
+    if (savedModel)    setModel(savedModel);
+  }, []);
+
+  // Persist provider and model on change
+  useEffect(() => { localStorage.setItem('rlm_provider', provider); }, [provider]);
+  useEffect(() => { localStorage.setItem('rlm_model', model); }, [model]);
+
+  const handleApiKeyChange = useCallback((val: string) => {
+    setApiKey(val);
+    setKeySaved(false);
+    if (val) {
+      localStorage.setItem('rlm_api_key', val);
+      setKeySaved(true);
+    } else {
+      localStorage.removeItem('rlm_api_key');
+    }
+  }, []);
+
+  const clearApiKey = useCallback(() => {
+    setApiKey('');
+    setKeySaved(false);
+    localStorage.removeItem('rlm_api_key');
+  }, []);
 
   const run = useCallback(async () => {
     if (!prompt.trim()) return;
@@ -131,15 +163,31 @@ export default function Home() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-zinc-500 uppercase tracking-widest block mb-1">API Key</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] text-zinc-500 uppercase tracking-widest">API Key</label>
+                    {keySaved && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-green-600">saved in browser</span>
+                        <button
+                          onClick={clearApiKey}
+                          className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors"
+                          title="Clear saved key"
+                        >
+                          clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <input
                     type="password"
                     value={apiKey}
-                    onChange={e => setApiKey(e.target.value)}
+                    onChange={e => handleApiKeyChange(e.target.value)}
                     placeholder={provider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
                     className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-700"
                   />
-                  <p className="text-[10px] text-zinc-700 mt-1">Stays local. Sent only to your Next.js server.</p>
+                  <p className="text-[10px] text-zinc-700 mt-1">
+                    Stored in your browser only. Never sent anywhere except your own Next.js server.
+                  </p>
                 </div>
                 <div>
                   <label className="text-[10px] text-zinc-500 uppercase tracking-widest block mb-1">Model</label>
@@ -358,9 +406,9 @@ export default function Home() {
                 Configure a provider above, enter a prompt, and run a cycle.
               </p>
               <div className="mt-6 text-[11px] text-zinc-700 space-y-1">
-                <p>Try: "Large language models are not capable of genuine reasoning"</p>
-                <p>Try: "Attention mechanisms are sufficient for world models"</p>
-                <p>Try: "Alignment and capability are fundamentally in tension"</p>
+                <p>Try: &ldquo;Large language models are not capable of genuine reasoning&rdquo;</p>
+                <p>Try: &ldquo;Attention mechanisms are sufficient for world models&rdquo;</p>
+                <p>Try: &ldquo;Alignment and capability are fundamentally in tension&rdquo;</p>
               </div>
             </div>
           )}
