@@ -15,11 +15,10 @@ export type Claim = {
 };
 
 export type FrictionType =
-  | 'blocking'
-  | 'structural'
-  | 'exploratory'
-  | 'deferred'
-  | 'resolved';
+  | 'contradiction'
+  | 'tension'
+  | 'refinement'
+  | 'convergence';
 
 export type Friction = {
   id: string;
