@@ -27,53 +27,52 @@ const AGENT_TEXT: Record<AgentRole, string> = {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const [prompt, setPrompt]         = useState('');
-  const [apiKey, setApiKey]         = useState('');
-  const [model, setModel]           = useState('claude-sonnet-4-6');
-  const [provider, setProvider]     = useState<'anthropic' | 'openai'>('anthropic');
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState<string | null>(null);
-  const [cycle, setCycle]           = useState<DebateCycle | null>(null);
-  const [history, setHistory]       = useState<DebateCycle[]>([]);
-  const [configOpen, setConfigOpen] = useState(true);
-  const [keySaved, setKeySaved]     = useState(false);
+  const [prompt, setPrompt]             = useState('');
+  const [anthropicKey, setAnthropicKey] = useState('');
+  const [openaiKey, setOpenaiKey]       = useState('');
+  const [model, setModel]               = useState('claude-sonnet-4-6');
+  const [provider, setProvider]         = useState<'anthropic' | 'openai'>('anthropic');
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState<string | null>(null);
+  const [cycle, setCycle]               = useState<DebateCycle | null>(null);
+  const [history, setHistory]           = useState<DebateCycle[]>([]);
+  const [configOpen, setConfigOpen]     = useState(true);
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
 
-  // Load persisted config from localStorage on mount
   useEffect(() => {
-    const savedKey      = localStorage.getItem('rlm_api_key');
-    const savedProvider = localStorage.getItem('rlm_provider') as 'anthropic' | 'openai' | null;
-    const savedModel    = localStorage.getItem('rlm_model');
-    if (savedKey)      { setApiKey(savedKey); setKeySaved(true); }
-    if (savedProvider) setProvider(savedProvider);
-    if (savedModel)    setModel(savedModel);
+    const ak = localStorage.getItem('rlm_api_key_anthropic');
+    const ok = localStorage.getItem('rlm_api_key_openai');
+    const sp = localStorage.getItem('rlm_provider') as 'anthropic' | 'openai' | null;
+    const sm = localStorage.getItem('rlm_model');
+    if (ak) setAnthropicKey(ak);
+    if (ok) setOpenaiKey(ok);
+    if (sp) setProvider(sp);
+    if (sm) setModel(sm);
   }, []);
 
-  // Persist provider and model on change
   useEffect(() => { localStorage.setItem('rlm_provider', provider); }, [provider]);
   useEffect(() => { localStorage.setItem('rlm_model', model); }, [model]);
 
-  const handleApiKeyChange = useCallback((val: string) => {
-    setApiKey(val);
-    setKeySaved(false);
-    if (val) {
-      localStorage.setItem('rlm_api_key', val);
-      setKeySaved(true);
-    } else {
-      localStorage.removeItem('rlm_api_key');
-    }
+  const handleAnthropicKeyChange = useCallback((val: string) => {
+    setAnthropicKey(val);
+    if (val) localStorage.setItem('rlm_api_key_anthropic', val);
+    else     localStorage.removeItem('rlm_api_key_anthropic');
   }, []);
 
-  const clearApiKey = useCallback(() => {
-    setApiKey('');
-    setKeySaved(false);
-    localStorage.removeItem('rlm_api_key');
+  const handleOpenaiKeyChange = useCallback((val: string) => {
+    setOpenaiKey(val);
+    if (val) localStorage.setItem('rlm_api_key_openai', val);
+    else     localStorage.removeItem('rlm_api_key_openai');
   }, []);
+
+  const hasCurrentKey = provider === 'anthropic' ? !!anthropicKey : !!openaiKey;
 
   const run = useCallback(async () => {
     if (!prompt.trim()) return;
     setLoading(true);
     setError(null);
 
+    const apiKey = provider === 'anthropic' ? anthropicKey : openaiKey;
     const providerConfig = { provider, apiKey, model };
     const config: DebateConfig = {
       proposerProvider:   providerConfig,
@@ -97,7 +96,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [prompt, apiKey, model, provider]);
+  }, [prompt, anthropicKey, openaiKey, model, provider]);
 
   const exportCycle = useCallback(() => {
     if (!cycle) return;
@@ -113,6 +112,67 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100" style={{ fontFamily: 'ui-monospace, monospace' }}>
 
+      {/* API Key Modal */}
+      {keyModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={e => { if (e.target === e.currentTarget) setKeyModalOpen(false); }}
+        >
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md mx-4 p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-zinc-100 tracking-tight">API Keys</h2>
+              <button
+                onClick={() => setKeyModalOpen(false)}
+                className="text-zinc-500 hover:text-zinc-200 text-xl leading-none transition-colors"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Anthropic */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />
+                <span className="text-xs font-semibold text-zinc-300">Anthropic (Claude)</span>
+                {anthropicKey && (
+                  <span className="ml-auto text-[10px] text-green-500">&#x2713; configured</span>
+                )}
+              </div>
+              <input
+                type="password"
+                value={anthropicKey}
+                onChange={e => handleAnthropicKeyChange(e.target.value)}
+                placeholder="sk-ant-..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-600"
+              />
+            </div>
+
+            {/* OpenAI */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                <span className="text-xs font-semibold text-zinc-300">OpenAI</span>
+                {openaiKey && (
+                  <span className="ml-auto text-[10px] text-green-500">&#x2713; configured</span>
+                )}
+              </div>
+              <input
+                type="password"
+                value={openaiKey}
+                onChange={e => handleOpenaiKeyChange(e.target.value)}
+                placeholder="sk-..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-600"
+              />
+            </div>
+
+            <p className="text-[10px] text-zinc-600 leading-relaxed border-t border-zinc-800 pt-4">
+              Keys are stored in your browser only. They are sent to this app&apos;s API endpoint solely
+              to forward your requests to providers — never logged or retained server-side.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
         <div>
@@ -123,7 +183,7 @@ export default function Home() {
           </h1>
           <p className="text-xs text-zinc-600 mt-0.5">reasoning observability · claim-level instrumentation</p>
         </div>
-        <div className="flex items-center gap-4 text-xs text-zinc-500">
+        <div className="flex items-center gap-3 text-xs text-zinc-500">
           <a href="https://zenodo.org/doi/10.5281/zenodo.20799847"
              target="_blank" rel="noreferrer"
              className="hover:text-zinc-300 transition-colors">URRP Paper (I₂)</a>
@@ -131,6 +191,19 @@ export default function Home() {
           <a href="https://zenodo.org/doi/10.5281/zenodo.20822051"
              target="_blank" rel="noreferrer"
              className="hover:text-zinc-300 transition-colors">CSA Paper</a>
+          <span className="text-zinc-700">·</span>
+          <button
+            onClick={() => setKeyModalOpen(true)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded border transition-colors ${
+              hasCurrentKey
+                ? 'border-violet-800 bg-violet-950/30 text-violet-400 hover:bg-violet-900/40'
+                : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+            }`}
+            title="Configure API keys"
+          >
+            <span>&#x1F511;</span>
+            <span className="text-[10px]">{hasCurrentKey ? 'key set' : 'add key'}</span>
+          </button>
         </div>
       </header>
 
@@ -162,33 +235,6 @@ export default function Home() {
                   </select>
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[10px] text-zinc-500 uppercase tracking-widest">API Key</label>
-                    {keySaved && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-green-600">saved in browser</span>
-                        <button
-                          onClick={clearApiKey}
-                          className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors"
-                          title="Clear saved key"
-                        >
-                          clear
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={e => handleApiKeyChange(e.target.value)}
-                    placeholder={provider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-700"
-                  />
-                  <p className="text-[10px] text-zinc-700 mt-1">
-                    Stored in your browser only. Never sent anywhere except your own Next.js server.
-                  </p>
-                </div>
-                <div>
                   <label className="text-[10px] text-zinc-500 uppercase tracking-widest block mb-1">Model</label>
                   <input
                     type="text"
@@ -197,6 +243,14 @@ export default function Home() {
                     className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-violet-500"
                   />
                 </div>
+                {!hasCurrentKey && (
+                  <button
+                    onClick={() => setKeyModalOpen(true)}
+                    className="w-full text-[10px] text-zinc-500 hover:text-violet-400 border border-zinc-800 hover:border-violet-800 rounded py-1.5 transition-colors"
+                  >
+                    Set API key →
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -284,7 +338,7 @@ export default function Home() {
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) run(); }}
             />
             <div className="flex items-center justify-between">
-              <p className="text-[11px] text-zinc-600">⌘ + Enter to run</p>
+              <p className="text-[11px] text-zinc-600">&#x2318; + Enter to run</p>
               <button
                 onClick={run}
                 disabled={loading || !prompt.trim()}
