@@ -6,6 +6,7 @@ export async function callModel(
   config: ProviderConfig,
   systemPrompt: string,
   userPrompt: string,
+  maxTokens = 4096,
 ): Promise<string> {
   const apiKey = config.apiKey
     || (config.provider === 'anthropic'
@@ -25,7 +26,7 @@ export async function callModel(
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: config.model || 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: maxTokens,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     });
@@ -48,7 +49,7 @@ export async function callModel(
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
     ],
-    max_tokens: 1024,
+    max_tokens: maxTokens,
   });
   return completion.choices[0]?.message.content ?? '';
 }
