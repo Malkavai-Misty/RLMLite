@@ -41,21 +41,14 @@ export async function detectFrictions(
 ): Promise<Friction[]> {
   if (claims.length < 2) return [];
 
-  const proposerClaims    = claims.filter(c => c.agent === 'proposer');
-  const challengerClaims  = claims.filter(c => c.agent === 'challenger');
-  const explorerClaims    = claims.filter(c => c.agent === 'explorer');
-
-  const claimList = [
-    ...proposerClaims.map((c, i) => ({ ...c, origIndex: claims.indexOf(c) })),
-    ...challengerClaims.map((c) => ({ ...c, origIndex: claims.indexOf(c) })),
-    ...explorerClaims.map((c) => ({ ...c, origIndex: claims.indexOf(c) })),
-  ];
+  const proposerClaims   = claims.filter(c => c.agent === 'proposer');
+  const challengerClaims = claims.filter(c => c.agent === 'challenger');
+  const pCCount = proposerClaims.length * challengerClaims.length;
 
   const labeled = claims
     .map((c, i) => `[${i}] [${c.agent.toUpperCase()}]: ${c.text}`)
     .join('\n');
 
-  const pCCount = proposerClaims.length * challengerClaims.length;
   const userPrompt = `Analyze these claims for relationships. Claims are labeled by agent role.
 
 ${labeled}
@@ -87,9 +80,6 @@ Return a JSON array covering all meaningful pairs.`;
     return [];
   }
 
-  // suppress unused variable — claimList was for ordering, not filtering
-  void claimList;
-
   return parsed
     .filter(f => {
       const c1 = claims[f.claim1Index];
@@ -103,11 +93,11 @@ Return a JSON array covering all meaningful pairs.`;
     })
     .map(f => ({
       id: randomId(),
-      claim1Id:    claims[f.claim1Index].id,
-      claim2Id:    claims[f.claim2Index].id,
-      claim1Text:  claims[f.claim1Index].text,
-      claim2Text:  claims[f.claim2Index].text,
+      claim1Id:     claims[f.claim1Index].id,
+      claim2Id:     claims[f.claim2Index].id,
+      claim1Text:   claims[f.claim1Index].text,
+      claim2Text:   claims[f.claim2Index].text,
       frictionType: f.frictionType as FrictionType,
-      reason:      f.reason ?? '',
+      reason:       f.reason ?? '',
     }));
 }
