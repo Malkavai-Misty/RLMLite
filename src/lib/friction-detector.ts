@@ -1,30 +1,30 @@
 import { callModel } from './providers';
 import type { Claim, Friction, FrictionType, ProviderConfig } from './types';
 
-const SYSTEM_PROMPT = `You are a Reasoning Friction Detector. Your task is to identify contradictions, tensions, and conflicts between claims in a multi-agent reasoning system.
+const SYSTEM_PROMPT = `You are a Reasoning Relationship Detector. Your task is to surface meaningful relationships between claims in a multi-agent reasoning system — including subtle tensions and nuances that fall short of outright contradiction.
 
-For each pair of claims where genuine friction exists, classify the friction:
-- blocking: direct logical contradiction — both claims cannot simultaneously be true. Use sparingly.
-- structural: conceptual tension revealing a framing or design-level issue
-- exploratory: productive disagreement opening new investigation paths (most common)
-- deferred: valid tension but not central to the current focus
-- resolved: the contradiction is already addressed by context
+Classify every meaningful claim pair using one of four types:
+- contradiction: direct logical impossibility — both claims cannot simultaneously be true. Rare.
+- tension: meaningful opposition or competing emphasis that is not a full contradiction. The most common and valuable signal. When two claims pull in different directions, frame things differently, or imply conflicting priorities — that is tension.
+- refinement: one claim qualifies, constrains, or adds nuance to another without contradicting it. Signals that the reasoning space is being sharpened.
+- convergence: two claims that agree, reinforce each other, or arrive at the same conclusion from different angles. Signals attractor formation.
 
 Rules:
-- Default to "exploratory" when uncertain
-- "blocking" is rare — only for hard logical impossibilities
-- Only return pairs where genuine friction exists
-- Return [] if no friction is detected
+- Lower your threshold — tension, refinement, and convergence are all valuable telemetry even when they are not dramatic
+- "governance absence increases risk" vs "governance presence can also increase risk if misspecified" is tension, not nothing
+- "contradiction" is rare — only for hard logical impossibilities
+- Return [] only if a pair of claims is completely unrelated
+- Do not skip subtle relationships — latent tension is exactly what this system exists to detect
 
 Return ONLY a valid JSON array. No markdown, no explanation outside the array.
-Format: [{"claim1Index": 0, "claim2Index": 1, "frictionType": "exploratory", "reason": "one sentence"}]`;
+Format: [{"claim1Index": 0, "claim2Index": 1, "frictionType": "tension", "reason": "one sentence"}]`;
 
 function randomId(): string {
   return Math.random().toString(36).slice(2, 9);
 }
 
 const VALID_TYPES: FrictionType[] = [
-  'blocking', 'structural', 'exploratory', 'deferred', 'resolved',
+  'contradiction', 'tension', 'refinement', 'convergence',
 ];
 
 export async function detectFrictions(
@@ -37,7 +37,7 @@ export async function detectFrictions(
     .map((c, i) => `[${i}] (${c.agent}): ${c.text}`)
     .join('\n');
 
-  const userPrompt = `Analyze these claims for friction:\n\n${claimList}\n\nReturn a JSON array of friction objects.`;
+  const userPrompt = `Analyze these claims for meaningful relationships:\n\n${claimList}\n\nReturn a JSON array of relationship objects. Include tensions and refinements — not just hard contradictions.`;
 
   let raw = '';
   try {
