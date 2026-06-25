@@ -49,8 +49,8 @@ Input prompt
 ## Quick start
 
 ```bash
-git clone https://github.com/malkavai-misty/rlm-lite.git
-cd rlm-lite
+git clone https://github.com/malkavai-misty/rlmlite.git
+cd rlmlite
 npm install
 cp .env.example .env.local
 # Edit .env.local — add ANTHROPIC_API_KEY or OPENAI_API_KEY
@@ -122,7 +122,13 @@ Published papers:
 
 ## License
 
-MIT. Use it, fork it, extend it. If you build something interesting on top, open an issue.
+This project is licensed under the [Business Source License 1.1](./LICENSE) (BUSL-1.1).
+
+**Free for:** research, education, personal projects, and evaluation.  
+**Commercial use** (production systems, products, services) requires a separate license from the Licensor.  
+On **2029-07-01** this code converts to Apache 2.0.
+
+To inquire about a commercial license, open an issue or contact the maintainer.
 
 ---
 
