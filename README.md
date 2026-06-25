@@ -122,7 +122,13 @@ Published papers:
 
 ## License
 
-Apache 2.0. See [LICENSE](./LICENSE) for the full terms.
+This project is licensed under the [Business Source License 1.1](./LICENSE) (BUSL-1.1).
+
+**Free for:** research, education, personal projects, and evaluation.  
+**Commercial use** (production systems, products, services) requires a separate license from the Licensor.  
+On **2029-07-01** this code converts to Apache 2.0.
+
+To inquire about a commercial license, open an issue or contact the maintainer.
 
 ---
 
