@@ -6,11 +6,10 @@ import type { DebateCycle, DebateConfig, FrictionType, AgentRole } from '@/lib/t
 // ── Styling maps ──────────────────────────────────────────────────────────────
 
 const FRICTION_STYLE: Record<FrictionType, string> = {
-  blocking:    'border-red-700    bg-red-950/30    text-red-300',
-  structural:  'border-orange-700 bg-orange-950/30 text-orange-300',
-  exploratory: 'border-blue-700   bg-blue-950/30   text-blue-300',
-  deferred:    'border-zinc-700   bg-zinc-900/30   text-zinc-400',
-  resolved:    'border-green-700  bg-green-950/30  text-green-300',
+  contradiction: 'border-red-700    bg-red-950/30    text-red-300',
+  tension:       'border-orange-700 bg-orange-950/30 text-orange-300',
+  refinement:    'border-blue-700   bg-blue-950/30   text-blue-300',
+  convergence:   'border-green-700  bg-green-950/30  text-green-300',
 };
 
 const AGENT_STYLE: Record<AgentRole, { border: string; bg: string; label: string; dot: string }> = {
@@ -229,6 +228,25 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Relationship legend */}
+          <div className="border-b border-zinc-800 px-4 py-3">
+            <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">Relationship Types</p>
+            <div className="space-y-1.5">
+              {[
+                { type: 'contradiction', color: 'bg-red-500',    desc: 'logical impossibility' },
+                { type: 'tension',       color: 'bg-orange-500', desc: 'competing emphasis' },
+                { type: 'refinement',    color: 'bg-blue-500',   desc: 'qualifies or constrains' },
+                { type: 'convergence',   color: 'bg-green-500',  desc: 'agreement or support' },
+              ].map(r => (
+                <div key={r.type} className="flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${r.color}`} />
+                  <span className="text-[10px] text-zinc-400">{r.type}</span>
+                  <span className="text-[10px] text-zinc-700">{r.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* History */}
           {history.length > 0 && (
             <div className="px-4 py-3 flex-1">
@@ -300,7 +318,7 @@ export default function Home() {
               <div className="grid grid-cols-5 gap-2">
                 {[
                   { label: 'Claims',          value: cycle.metrics.claimCount,                      color: 'text-zinc-100' },
-                  { label: 'Frictions',       value: cycle.metrics.frictionCount,                   color: 'text-orange-400' },
+                  { label: 'Relationships',   value: cycle.metrics.frictionCount,                   color: 'text-orange-400' },
                   { label: 'Contradiction ρ', value: cycle.metrics.contradictionDensity.toFixed(2), color: cycle.metrics.contradictionDensity > 0.5 ? 'text-red-400' : 'text-yellow-400' },
                   { label: 'Agreement',       value: cycle.metrics.agreementRate.toFixed(2),        color: cycle.metrics.agreementRate > 0.5 ? 'text-green-400' : 'text-zinc-400' },
                   { label: 'Stability',       value: cycle.metrics.attractorStability.toFixed(2),   color: cycle.metrics.attractorStability > 0.6 ? 'text-green-400' : 'text-orange-400' },
@@ -337,11 +355,11 @@ export default function Home() {
                 })}
               </div>
 
-              {/* Friction table */}
+              {/* Relationship map */}
               {cycle.frictions.length > 0 ? (
                 <div className="border border-zinc-800 rounded-lg p-4">
                   <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-3">
-                    Friction Map — {cycle.frictions.length} detected
+                    Relationship Map — {cycle.frictions.length} detected
                   </p>
                   <div className="space-y-2">
                     {cycle.frictions.map(f => (
@@ -367,7 +385,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="border border-zinc-800 rounded-lg p-3 text-center">
-                  <p className="text-xs text-zinc-600">No friction detected in this cycle.</p>
+                  <p className="text-xs text-zinc-600">No relationships detected in this cycle.</p>
                 </div>
               )}
 
