@@ -1,3 +1,13 @@
+---
+title: RLMLite
+emoji: 🧠
+colorFrom: purple
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # RLM Lite
 
 **Reasoning observability for multi-agent AI systems.**
