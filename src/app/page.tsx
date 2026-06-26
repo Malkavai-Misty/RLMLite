@@ -69,8 +69,10 @@ export default function Home() {
   const [history, setHistory]           = useState<DebateCycle[]>([]);
   const [configOpen, setConfigOpen]     = useState(true);
   const [keyModalOpen, setKeyModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [webmcpOpen, setWebmcpOpen]     = useState(false);
   const [webmcpStatus, setWebmcpStatus] = useState<WebMcpStatus | null>(null);
+  const [devMode, setDevMode]           = useState(false);
 
   // Load persisted config
   useEffect(() => {
@@ -108,7 +110,7 @@ export default function Home() {
     const supported = hasWindowAi || hasWindowWebMcp || hasWindowMcp || hasNavigatorMcp;
 
     let apiLocation = 'not found';
-    if (hasWindowAi)     apiLocation = 'window.ai';
+    if (hasWindowAi)          apiLocation = 'window.ai';
     else if (hasWindowWebMcp) apiLocation = 'window.WebMCP';
     else if (hasWindowMcp)    apiLocation = 'window.mcp';
     else if (hasNavigatorMcp) apiLocation = 'navigator.mcp';
@@ -129,7 +131,6 @@ export default function Home() {
     };
     setWebmcpStatus(status);
 
-    // Attempt registration if API is present
     if (hasNavigatorMcp) {
       const mcpApi = n.mcp as Record<string, unknown>;
       const registerFn = (mcpApi.register ?? mcpApi.setClientId) as
@@ -179,7 +180,6 @@ export default function Home() {
       if (!json.success) throw new Error(json.error);
       setCycle(json.data);
       setHistory(prev => [json.data, ...prev].slice(0, 10));
-      // update last invocation in webmcp debug
       setWebmcpStatus(s => s ? { ...s, lastInvocation: new Date().toLocaleTimeString() } : s);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error');
@@ -247,22 +247,32 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-bold tracking-tight">
-            <span className="text-violet-400">RLM</span>
-            <span className="text-zinc-400"> Lite</span>
-            <span className="ml-2 text-xs font-normal text-zinc-600">v0.1.0</span>
-          </h1>
-          <p className="text-xs text-zinc-600 mt-0.5">reasoning observability · claim-level instrumentation</p>
+      <header className="border-b border-zinc-800 px-4 md:px-6 py-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setSidebarOpen(o => !o)}
+            className="md:hidden flex-shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors text-lg leading-none px-1"
+            title="Toggle sidebar"
+          >
+            &#9776;
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-base font-bold tracking-tight">
+              <span className="text-violet-400">RLM</span>
+              <span className="text-zinc-400"> Lite</span>
+              <span className="ml-2 text-xs font-normal text-zinc-600">v0.1.0</span>
+            </h1>
+            <p className="text-xs text-zinc-600 mt-0.5 hidden sm:block">reasoning observability · claim-level instrumentation</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-zinc-500">
+        <div className="flex items-center gap-2 md:gap-3 text-xs text-zinc-500 flex-shrink-0">
           <a href="https://zenodo.org/doi/10.5281/zenodo.20799847" target="_blank" rel="noreferrer"
-             className="hover:text-zinc-300 transition-colors">URRP Paper (I₂)</a>
-          <span className="text-zinc-700">·</span>
+             className="hidden md:block hover:text-zinc-300 transition-colors">URRP Paper (I₂)</a>
+          <span className="hidden md:block text-zinc-700">·</span>
           <a href="https://zenodo.org/doi/10.5281/zenodo.20822051" target="_blank" rel="noreferrer"
-             className="hover:text-zinc-300 transition-colors">CSA Paper</a>
-          <span className="text-zinc-700">·</span>
+             className="hidden md:block hover:text-zinc-300 transition-colors">CSA Paper</a>
+          <span className="hidden md:block text-zinc-700">·</span>
           <button onClick={() => setKeyModalOpen(true)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded border transition-colors ${
               hasCurrentKey
@@ -275,10 +285,28 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-49px)]">
+      <div className="flex h-[calc(100vh-49px)] relative">
 
-        {/* Sidebar */}
-        <aside className="w-72 border-r border-zinc-800 flex flex-col overflow-y-auto">
+        {/* Mobile backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/60 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar — drawer on mobile, fixed panel on desktop */}
+        <aside className={`
+          fixed top-[49px] bottom-0 left-0
+          md:static md:top-auto md:bottom-auto
+          z-30 md:z-auto
+          w-72 flex-shrink-0
+          bg-zinc-950
+          border-r border-zinc-800
+          flex flex-col overflow-y-auto
+          transition-transform duration-200 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
 
           {/* Config */}
           <div className="border-b border-zinc-800">
@@ -355,97 +383,106 @@ export default function Home() {
             </div>
           </div>
 
-          {/* WebMCP Debug */}
-          <div className="border-b border-zinc-800">
-            <button onClick={() => setWebmcpOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-semibold text-zinc-600 uppercase tracking-widest hover:text-zinc-400 transition-colors">
-              WebMCP Debug
-              <span className="text-[8px]">{webmcpOpen ? '▲' : '▼'}</span>
-            </button>
-            {webmcpOpen && webmcpStatus && (
-              <div className="px-4 pb-4 space-y-1.5">
+          {/* Dev mode toggle + WebMCP Debug (dev only) */}
+          <div className="border-b border-zinc-800 px-4 py-2.5">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={devMode}
+                onChange={e => setDevMode(e.target.checked)}
+                className="accent-violet-500 w-3 h-3"
+              />
+              <span className="text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors">Dev mode</span>
+            </label>
+          </div>
 
-                {/* Plain-English status — for non-technical users */}
-                <div className={`rounded px-2.5 py-2 mb-1 text-[10px] leading-snug ${
-                  webmcpStatus.supported
-                    ? 'bg-green-950/40 border border-green-900 text-green-400'
-                    : 'bg-zinc-900 border border-zinc-700 text-zinc-400'
-                }`}>
-                  {webmcpStatus.supported
-                    ? 'AI agents in your browser can call this site\'s tools directly.'
-                    : 'Tools are ready and waiting. Browser AI calling activates on desktop Chrome 149+.'
-                  }
-                </div>
-
-                {/* Technical rows — for nerds */}
-                {[
-                  {
-                    label: 'Chrome WebMCP detected',
-                    value: webmcpStatus.supported ? 'yes' : 'no',
-                    dot:   webmcpStatus.supported ? 'bg-green-500' : 'bg-red-500',
-                    color: webmcpStatus.supported ? 'text-green-500' : 'text-red-500',
-                  },
-                  {
-                    label: 'Tool manifest',
-                    value: '✓ /api/mcp',
-                    dot:   'bg-green-500',
-                    color: 'text-green-500',
-                  },
-                  {
-                    label: 'Registration',
-                    value: webmcpStatus.registered === 'registered' ? 'registered'
-                         : webmcpStatus.registered === 'pending'    ? 'pending'
-                         : webmcpStatus.registered === 'failed'     ? 'failed'
-                         :                                            'pending browser support',
-                    dot:   webmcpStatus.registered === 'registered' ? 'bg-green-500'
-                         : webmcpStatus.registered === 'pending'    ? 'bg-yellow-500'
-                         : webmcpStatus.registered === 'failed'     ? 'bg-red-500'
-                         :                                            'bg-zinc-600',
-                    color: webmcpStatus.registered === 'registered' ? 'text-green-500'
-                         : webmcpStatus.registered === 'pending'    ? 'text-yellow-500'
-                         : webmcpStatus.registered === 'failed'     ? 'text-red-500'
-                         :                                            'text-zinc-500',
-                  },
-                  {
-                    label: 'Tool name',
-                    value: 'rlm_reason',
-                    dot:   'bg-green-500',
-                    color: 'text-zinc-400',
-                  },
-                  {
-                    label: 'API location',
-                    value: webmcpStatus.apiLocation,
-                    dot:   webmcpStatus.apiLocation !== 'not found' ? 'bg-green-500' : 'bg-zinc-600',
-                    color: webmcpStatus.apiLocation !== 'not found' ? 'text-zinc-300' : 'text-zinc-600',
-                  },
-                  {
-                    label: 'Last invocation',
-                    value: webmcpStatus.lastInvocation,
-                    dot:   'bg-zinc-600',
-                    color: 'text-zinc-600',
-                  },
-                ].map(row => (
-                  <div key={row.label} className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${row.dot}`} />
-                      <span className="text-[10px] text-zinc-500">{row.label}</span>
-                    </div>
-                    <span className={`text-[10px] ${row.color}`}>{row.value}</span>
+          {devMode && (
+            <div className="border-b border-zinc-800">
+              <button onClick={() => setWebmcpOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-semibold text-zinc-600 uppercase tracking-widest hover:text-zinc-400 transition-colors">
+                WebMCP Debug
+                <span className="text-[8px]">{webmcpOpen ? '▲' : '▼'}</span>
+              </button>
+              {webmcpOpen && webmcpStatus && (
+                <div className="px-4 pb-4 space-y-1.5">
+                  <div className={`rounded px-2.5 py-2 mb-1 text-[10px] leading-snug ${
+                    webmcpStatus.supported
+                      ? 'bg-green-950/40 border border-green-900 text-green-400'
+                      : 'bg-zinc-900 border border-zinc-700 text-zinc-400'
+                  }`}>
+                    {webmcpStatus.supported
+                      ? 'AI agents in your browser can call this site\'s tools directly.'
+                      : 'Tools are ready and waiting. Browser AI calling activates on desktop Chrome 149+.'
+                    }
                   </div>
-                ))}
-
-                <div className="mt-2 pt-2 border-t border-zinc-800 space-y-1">
-                  <p className="text-[9px] text-zinc-700 uppercase tracking-widest mb-1">Raw Diagnostics</p>
-                  {Object.entries(webmcpStatus.raw).map(([k, v]) => (
-                    <div key={k} className="flex items-start justify-between gap-2">
-                      <span className="text-[9px] text-zinc-700 flex-shrink-0">{k}</span>
-                      <span className="text-[9px] text-zinc-500 text-right break-all">{v}</span>
+                  {[
+                    {
+                      label: 'Chrome WebMCP detected',
+                      value: webmcpStatus.supported ? 'yes' : 'no',
+                      dot:   webmcpStatus.supported ? 'bg-green-500' : 'bg-red-500',
+                      color: webmcpStatus.supported ? 'text-green-500' : 'text-red-500',
+                    },
+                    {
+                      label: 'Tool manifest',
+                      value: '✓ /api/mcp',
+                      dot:   'bg-green-500',
+                      color: 'text-green-500',
+                    },
+                    {
+                      label: 'Registration',
+                      value: webmcpStatus.registered === 'registered' ? 'registered'
+                           : webmcpStatus.registered === 'pending'    ? 'pending'
+                           : webmcpStatus.registered === 'failed'     ? 'failed'
+                           :                                            'pending browser support',
+                      dot:   webmcpStatus.registered === 'registered' ? 'bg-green-500'
+                           : webmcpStatus.registered === 'pending'    ? 'bg-yellow-500'
+                           : webmcpStatus.registered === 'failed'     ? 'bg-red-500'
+                           :                                            'bg-zinc-600',
+                      color: webmcpStatus.registered === 'registered' ? 'text-green-500'
+                           : webmcpStatus.registered === 'pending'    ? 'text-yellow-500'
+                           : webmcpStatus.registered === 'failed'     ? 'text-red-500'
+                           :                                            'text-zinc-500',
+                    },
+                    {
+                      label: 'Tool name',
+                      value: 'rlm_reason',
+                      dot:   'bg-green-500',
+                      color: 'text-zinc-400',
+                    },
+                    {
+                      label: 'API location',
+                      value: webmcpStatus.apiLocation,
+                      dot:   webmcpStatus.apiLocation !== 'not found' ? 'bg-green-500' : 'bg-zinc-600',
+                      color: webmcpStatus.apiLocation !== 'not found' ? 'text-zinc-300' : 'text-zinc-600',
+                    },
+                    {
+                      label: 'Last invocation',
+                      value: webmcpStatus.lastInvocation,
+                      dot:   'bg-zinc-600',
+                      color: 'text-zinc-600',
+                    },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${row.dot}`} />
+                        <span className="text-[10px] text-zinc-500">{row.label}</span>
+                      </div>
+                      <span className={`text-[10px] ${row.color}`}>{row.value}</span>
                     </div>
                   ))}
+                  <div className="mt-2 pt-2 border-t border-zinc-800 space-y-1">
+                    <p className="text-[9px] text-zinc-700 uppercase tracking-widest mb-1">Raw Diagnostics</p>
+                    {Object.entries(webmcpStatus.raw).map(([k, v]) => (
+                      <div key={k} className="flex items-start justify-between gap-2">
+                        <span className="text-[9px] text-zinc-700 flex-shrink-0">{k}</span>
+                        <span className="text-[9px] text-zinc-500 text-right break-all">{v}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* History */}
           {history.length > 0 && (
@@ -453,7 +490,7 @@ export default function Home() {
               <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">History</p>
               <div className="space-y-1">
                 {history.map((h, i) => (
-                  <button key={h.id} onClick={() => setCycle(h)}
+                  <button key={h.id} onClick={() => { setCycle(h); setSidebarOpen(false); }}
                     className={`w-full text-left text-[11px] px-2 py-1.5 rounded transition-colors ${
                       cycle?.id === h.id
                         ? 'bg-violet-900/30 text-violet-300 border border-violet-800'
@@ -469,7 +506,7 @@ export default function Home() {
         </aside>
 
         {/* Main */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-4">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 min-w-0">
 
           <div className="border border-zinc-800 rounded-lg p-4 space-y-3">
             <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
@@ -477,9 +514,9 @@ export default function Home() {
               className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-violet-500 placeholder:text-zinc-600 resize-none h-24 leading-relaxed"
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) run(); }} />
             <div className="flex items-center justify-between">
-              <p className="text-[11px] text-zinc-600">&#x2318; + Enter to run</p>
+              <p className="text-[11px] text-zinc-600 hidden sm:block">&#x2318; + Enter to run</p>
               <button onClick={run} disabled={loading || !prompt.trim()}
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white text-xs font-semibold rounded transition-colors">
+                className="ml-auto px-5 py-2 bg-violet-500 hover:bg-violet-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white text-xs font-bold rounded transition-colors shadow-lg shadow-violet-900/30">
                 {loading ? 'Running…' : 'Run Cycle'}
               </button>
             </div>
@@ -498,7 +535,7 @@ export default function Home() {
 
           {cycle && !loading && (
             <div className="space-y-4">
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {[
                   { label: 'Claims',          value: cycle.metrics.claimCount,                      color: 'text-zinc-100' },
                   { label: 'Relationships',   value: cycle.metrics.frictionCount,                   color: 'text-orange-400' },
@@ -513,7 +550,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {(['proposer', 'challenger', 'explorer'] as AgentRole[]).map(role => {
                   const agentClaims = cycle.claims.filter(c => c.agent === role);
                   const style = AGENT_STYLE[role];
@@ -546,7 +583,7 @@ export default function Home() {
                           <span className="text-zinc-600">·</span>
                           <span className="text-[11px] text-zinc-400">{f.reason}</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <p className="text-[11px] bg-black/20 rounded p-1.5 text-zinc-400"><span className="text-zinc-600 text-[9px] uppercase">A </span>{f.claim1Text}</p>
                           <p className="text-[11px] bg-black/20 rounded p-1.5 text-zinc-400"><span className="text-zinc-600 text-[9px] uppercase">B </span>{f.claim2Text}</p>
                         </div>
@@ -579,7 +616,7 @@ export default function Home() {
           )}
 
           {!cycle && !loading && !error && (
-            <div className="border border-zinc-800 border-dashed rounded-lg p-16 text-center space-y-2">
+            <div className="border border-zinc-800 border-dashed rounded-lg p-12 md:p-16 text-center space-y-2">
               <p className="text-zinc-500 text-sm">No cycle run yet.</p>
               <p className="text-zinc-700 text-xs">Configure a provider above, enter a prompt, and run a cycle.</p>
               <div className="mt-6 text-[11px] text-zinc-700 space-y-1">
