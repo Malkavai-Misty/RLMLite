@@ -63,13 +63,26 @@ git clone https://github.com/malkavai-misty/rlmlite.git
 cd rlmlite
 npm install
 cp .env.example .env.local
-# Edit .env.local — add ANTHROPIC_API_KEY or OPENAI_API_KEY
+# Edit .env.local — add your API key for the provider you want to use
 npm run dev
 ```
 
 Open http://localhost:3000, enter a prompt, run a cycle.
 
-**Supported providers:** Anthropic Claude (recommended), OpenAI, any OpenAI-compatible endpoint.
+### Supported providers
+
+| Provider | API Key Format | Notes |
+|---|---|---|
+| **Anthropic** | `sk-ant-...` | Recommended |
+| **OpenAI** | `sk-...` | |
+| **Google** | `AI...` | Gemini models |
+| **OpenRouter** | `sk-or-...` | Multi-provider gateway |
+| **DeepSeek** | `sk-...` | |
+| **Groq** | `gsk_...` | |
+| **Mistral** | `sk-...` | |
+| **Ollama** | — | Local — no key required |
+
+Keys are stored in your browser only. They are sent to the app's API endpoint solely to forward your requests to providers — never logged or retained server-side.
 
 ---
 
@@ -127,6 +140,7 @@ URRP is a formal framework for measuring reasoning stability in large language m
 Published papers:
 - **I₂: Substrate Invariant** — [doi:10.5281/zenodo.20799847](https://zenodo.org/doi/10.5281/zenodo.20799847)
 - **CSA: Constraint Stability Analysis** — [doi:10.5281/zenodo.20822051](https://zenodo.org/doi/10.5281/zenodo.20822051)
+- **RLMLite: Reasoning Observability for Multi-Agent AI Systems** — [doi:10.5281/zenodo.20848833](https://zenodo.org/doi/10.5281/zenodo.20848833)
 
 ---
 
