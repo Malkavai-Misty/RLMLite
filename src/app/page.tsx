@@ -528,7 +528,7 @@ export default function Home() {
             <p className="text-[10px] text-zinc-500">RLM Lite</p>
             <p className="text-[10px] text-zinc-700 leading-relaxed">Reasoning Observability for<br />Multi-Agent AI Systems</p>
             <p className="text-[10px] text-zinc-700 mt-0.5 opacity-70">v0.1.0 &middot; Research Preview</p>
-            <p className="text-[10px] text-zinc-700 opacity-70">Unified Reasoning Robustness Protocol (URRP)</p>
+            <p className="text-[10px] text-zinc-700 opacity-70">Unified Resonance Research Program (URRP)</p>
           </div>
 
         </aside>

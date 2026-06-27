@@ -82,7 +82,7 @@ Open http://localhost:3000, enter a prompt, run a cycle.
 | **Mistral** | `sk-...` | |
 | **Ollama** | — | Local — no key required |
 
-Keys are stored in your browser only. They are sent to the app's API endpoint solely to forward your requests to providers — never logged or retained server-side.
+Keys are stored in your browser only. They are sent to the app’s API endpoint solely to forward your requests to providers — never logged or retained server-side.
 
 ---
 
@@ -127,13 +127,13 @@ RLM Lite exposes the core claim-level pipeline. The full Resonance Lattice Model
 | Resonance scoring | — | ✓ |
 | URRP theorem registry integration | — | ✓ |
 
-The **Frame Transition Analyzer** is a novel instrumentation component that detects *frame-stickiness* — when a synthesis reaches a correct conclusion while internally retaining the initial frame's organizational structure rather than genuinely adopting the challenger's framing. This signal is not included in Lite.
+The **Frame Transition Analyzer** is a novel instrumentation component that detects *frame-stickiness* — when a synthesis reaches a correct conclusion while internally retaining the initial frame’s organizational structure rather than genuinely adopting the challenger’s framing. This signal is not included in Lite.
 
 ---
 
 ## Research context
 
-RLM Lite is derived from the **Resonance Lattice Model (RLM)**, a component of the **Unified Reasoning Robustness Protocol (URRP)** research program.
+RLM Lite is derived from the **Resonance Lattice Model (RLM)**, a component of the **Unified Resonance Research Program (URRP)**.
 
 URRP is a formal framework for measuring reasoning stability in large language model systems across six invariant dimensions (I₁–I₆), where I₂ (Substrate Invariant) serves as the foundational substrate layer.
 
@@ -156,4 +156,4 @@ To inquire about a commercial license, open an issue or contact the maintainer.
 
 ---
 
-*Built by [@Malkavai-Misty](https://github.com/malkavai-misty). Part of the URRP research program.*
+*Built by [@Malkavai-Misty](https://github.com/malkavai-misty). Part of the Unified Resonance Research Program (URRP).*
