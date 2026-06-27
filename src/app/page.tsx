@@ -503,6 +503,34 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          {/* DOI + copyright */}
+          <div className="mt-auto border-t border-zinc-800 p-4 text-center space-y-1.5">
+            <p className="text-[10px] font-semibold text-zinc-400">&#169; 2026 Misty Michele Richards</p>
+            <p className="text-[10px] text-zinc-600">BUSL-1.1 &middot; Apache 2.0 from 2029-07-01</p>
+            <div className="flex justify-center py-1">
+              <a
+                href="https://doi.org/10.5281/zenodo.20848833"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80 transition-opacity"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://zenodo.org/badge/DOI/10.5281/zenodo.20848833.svg"
+                  alt="DOI: 10.5281/zenodo.20848833"
+                  width={150}
+                  height={20}
+                  referrerPolicy="no-referrer"
+                />
+              </a>
+            </div>
+            <p className="text-[10px] text-zinc-500">RLM Lite</p>
+            <p className="text-[10px] text-zinc-700 leading-relaxed">Reasoning Observability for<br />Multi-Agent AI Systems</p>
+            <p className="text-[10px] text-zinc-700 mt-0.5 opacity-70">v0.1.0 &middot; Research Preview</p>
+            <p className="text-[10px] text-zinc-700 opacity-70">Unified Reasoning Robustness Protocol (URRP)</p>
+          </div>
+
         </aside>
 
         {/* Main */}
