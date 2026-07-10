@@ -73,6 +73,7 @@ export default function Home() {
   const [webmcpOpen, setWebmcpOpen]     = useState(false);
   const [webmcpStatus, setWebmcpStatus] = useState<WebMcpStatus | null>(null);
   const [devMode, setDevMode]           = useState(false);
+  const [isMobile, setIsMobile]         = useState(false);
 
   // Load persisted config
   useEffect(() => {
@@ -90,6 +91,14 @@ export default function Home() {
 
   useEffect(() => { localStorage.setItem('rlm_provider', provider); }, [provider]);
   useEffect(() => { localStorage.setItem('rlm_model',    model);    }, [model]);
+
+  // Mobile-browser detection (user-agent heuristic; WebMCP browser APIs are
+  // currently desktop-Chrome-only, so this drives the mobile status notice
+  // near the WebMCP Debug section below — independent of `devMode`, since
+  // it's meant for ordinary mobile users, not just developers).
+  useEffect(() => {
+    setIsMobile(/Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent));
+  }, []);
 
   // Probe WebMCP APIs
   useEffect(() => {
@@ -382,6 +391,20 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          {/* Mobile WebMCP notice — always visible (not gated by devMode), since
+              it's informational for ordinary mobile users, not a dev-only detail. */}
+          {isMobile && webmcpStatus && !webmcpStatus.supported && (
+            <div className="border-b border-zinc-800 px-4 py-2.5">
+              <div className="flex items-start gap-2 rounded-lg border border-blue-900/50 bg-blue-950/30 px-3 py-2.5 text-xs leading-relaxed text-blue-300">
+                <span>
+                  Mobile browser detected. WebMCP currently requires desktop Chrome 149+.
+                  Application is functioning normally; browser integration is unavailable
+                  on this device.
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Dev mode toggle + WebMCP Debug (dev only) */}
           <div className="border-b border-zinc-800 px-4 py-2.5">
