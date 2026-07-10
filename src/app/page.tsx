@@ -392,20 +392,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Mobile WebMCP notice — always visible (not gated by devMode), since
-              it's informational for ordinary mobile users, not a dev-only detail. */}
-          {isMobile && webmcpStatus && !webmcpStatus.supported && (
-            <div className="border-b border-zinc-800 px-4 py-2.5">
-              <div className="flex items-start gap-2 rounded-lg border border-blue-900/50 bg-blue-950/30 px-3 py-2.5 text-xs leading-relaxed text-blue-300">
-                <span>
-                  Mobile browser detected. WebMCP currently requires desktop Chrome 149+.
-                  Application is functioning normally; browser integration is unavailable
-                  on this device.
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* Dev mode toggle + WebMCP Debug (dev only) */}
           <div className="border-b border-zinc-800 px-4 py-2.5">
             <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -530,6 +516,21 @@ export default function Home() {
 
         {/* Main */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 min-w-0">
+
+          {/* Mobile WebMCP notice — user-facing guidance, not developer
+              diagnostics. Lives in the always-visible main content area
+              (not the collapsible sidebar drawer, and not gated by Dev
+              Mode), so it's shown immediately regardless of drawer or
+              Dev Mode state. */}
+          {isMobile && webmcpStatus && !webmcpStatus.supported && (
+            <div className="flex items-start gap-2 rounded-lg border border-blue-900/50 bg-blue-950/30 px-3 py-2.5 text-xs leading-relaxed text-blue-300">
+              <span>
+                Mobile browser detected. WebMCP currently requires desktop Chrome 149+.
+                Application is functioning normally; browser integration is unavailable
+                on this device.
+              </span>
+            </div>
+          )}
 
           <div className="border border-zinc-800 rounded-lg p-4 space-y-3">
             <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
