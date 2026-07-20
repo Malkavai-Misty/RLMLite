@@ -120,7 +120,7 @@ The **Frame Transition Analyzer** is a novel instrumentation component that dete
 
 ## Research context
 
-RLM Lite is derived from the **Resonance Lattice Model (RLM)**, a component of the **Unified Reasoning Robustness Protocol (URRP)** research program.
+RLM Lite is derived from the **Resonance Logic Model (RLM)**, a component of the **Unified Resonance Research Program (URRP)** research program.
 
 URRP is a formal framework for measuring reasoning stability in large language model systems across six invariant dimensions (I₁–I₆), where I₂ (Substrate Invariant) serves as the foundational substrate layer.
 
