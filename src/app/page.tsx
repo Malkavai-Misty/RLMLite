@@ -274,8 +274,8 @@ export default function Home() {
              className="hidden md:block hover:text-zinc-300 transition-colors">CSA Paper</a>
           <span className="hidden md:block text-zinc-700">·</span>
           <a href="https://zenodo.org/doi/10.5281/zenodo.20848833" target="_blank" rel="noreferrer"
-             className="hidden md:block hover:text-zinc-300 transition-colors">Cite RLMLite</a>
-          <span className="hidden md:block text-zinc-700">·</span>
+             className="text-zinc-400 hover:text-zinc-200 transition-colors">Cite RLMLite</a>
+          <span className="text-zinc-700">·</span>
           <button onClick={() => setKeyModalOpen(true)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded border transition-colors ${
               hasCurrentKey
