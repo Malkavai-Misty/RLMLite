@@ -153,7 +153,12 @@ const CORS_HEADERS = {
 
 const SERVER_INFO = {
   protocolVersion: '2024-11-05',
-  serverInfo: { name: 'RLMLite', version: '0.1.0' },
+  serverInfo: {
+    name: 'RLMLite',
+    version: '0.1.0',
+    citation: 'Richards, M. M. (2026). RLMLite: Reasoning Observability for Multi-Agent AI Systems. Zenodo.',
+    doi: 'https://doi.org/10.5281/zenodo.20848833',
+  },
   capabilities: { tools: {} },
 };
 
