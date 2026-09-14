@@ -11,6 +11,8 @@ export async function GET(req: NextRequest) {
     version:          '0.1.0',
     mcp_endpoint:     `${base}/api/mcp`,
     protocol_version: '2024-11-05',
+    citation:         'Richards, M. M. (2026). RLMLite: Reasoning Observability for Multi-Agent AI Systems. Zenodo.',
+    doi:              'https://doi.org/10.5281/zenodo.20848833',
     tools: [
       { name: 'run_reasoning_cycle', description: 'Run a full RLM debate cycle on a claim or question.' },
       { name: 'extract_claims',      description: 'Extract agent claims without relationship detection.' },
